@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var symbol, begin, end, output string
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "hrms",
@@ -33,7 +35,10 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hrms.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&symbol, "symbol", "s", "", "symbol to download (e.g. BTCUSDT)")
+	rootCmd.PersistentFlags().StringVarP(&begin, "begin", "b", "", "begin date to download (format: YYYYMMDD)")
+	rootCmd.PersistentFlags().StringVarP(&end, "end", "e", "", "end date to download (format: YYYYMMDD)")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "./", "output directory (default is ./)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var symbol, begin, end, output string
-
 // downloadCmd represents the download command
 var downloadCmd = &cobra.Command{
 	Use:   "download",
@@ -92,11 +90,6 @@ var downloadCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(downloadCmd)
-
-	downloadCmd.Flags().StringVarP(&symbol, "symbol", "s", "", "Symbol to download. (e.g. BTCUSD)")
-	downloadCmd.Flags().StringVarP(&begin, "begin", "b", "", "Begin date. (e.g. 20240101)")
-	downloadCmd.Flags().StringVarP(&end, "end", "e", "", "End date. (e.g. 20240103)")
-	downloadCmd.Flags().StringVarP(&output, "output", "o", "./", "Output directory. (e.g. /path/to/output)")
 
 	// Here you will define your flags and configuration settings.
 
