@@ -4,8 +4,10 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/csv"
 	"errors"
-	"fmt"
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/shion24hub/hrms/bybit"
@@ -31,6 +33,9 @@ var downloadCmd = &cobra.Command{
 		if len(end) == 0 {
 			return errors.New("end date is required")
 		}
+		if len(output) == 0 {
+			return errors.New("output directory is required")
+		}
 
 		b, err := time.Parse("20060102", begin)
 		if err != nil {
@@ -41,25 +46,45 @@ var downloadCmd = &cobra.Command{
 			return errors.New("failed to parse end date")
 		}
 
+		// MAIN PROCESS
+
 		dateRange := []time.Time{}
 		for d := b; d.Before(e); d = d.AddDate(0, 0, 1) {
 			dateRange = append(dateRange, d)
 		}
 		for _, date := range dateRange {
-			url, err := bybit.MakeUrl(symbol, date)
+
+			// make url
+			ep, err := bybit.MakeUrl(symbol, date)
 			if err != nil {
 				return errors.New("failed to make url")
 			}
-			_, err = bybit.DownloadTradingData(url)
+
+			// fetch trading data
+			btrs, err := bybit.FetchTradingData(ep)
 			if err != nil {
 				return errors.New("failed to download trading data")
 			}
-		}
+			data := [][]string{}
+			for _, btr := range btrs {
+				data = append(data, []string{btr.Timestamp.Format("2006-01-02 15:04:05"), btr.Symbol, btr.Side, btr.Size, btr.Price})
+			}
 
-		fmt.Println("download called!")
-		fmt.Println("symbol:", symbol)
-		fmt.Println("begin:", begin)
-		fmt.Println("end:", end)
+			// create file
+			fileName := symbol + date.Format("2006-01-02") + ".csv"
+			outputPath, err := url.JoinPath(output, fileName)
+			if err != nil {
+				return errors.New("failed to join path")
+			}
+			of, err := os.Create(outputPath)
+			if err != nil {
+				return errors.New("failed to create file")
+			}
+
+			// write to file
+			w := csv.NewWriter(of)
+			w.WriteAll(data)
+		}
 
 		return nil
 	},

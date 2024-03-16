@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/csv"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -30,7 +32,9 @@ func MakeUrl(symbol string, date time.Time) (string, error) {
 	return ep, nil
 }
 
-func FetchTradingData(url string) (*csv.Reader, error) {
+func FetchTradingData(url string) ([]BybitTradingRow, error) {
+
+	btrs := []BybitTradingRow{}
 
 	client := http.Client{
 		Timeout: 30 * time.Second,
@@ -59,5 +63,32 @@ func FetchTradingData(url string) (*csv.Reader, error) {
 
 	r := csv.NewReader(gz)
 
-	return r, nil
+	r.Read() // skip header
+	for {
+		row, err := r.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		// convert unixms to time.Time
+		unixms, err := strconv.ParseFloat(row[0], 64)
+		if err != nil {
+			return nil, err
+		}
+		ts := time.UnixMilli(int64(unixms * 1000))
+
+		btr := BybitTradingRow{
+			Timestamp: ts,
+			Symbol:    row[1],
+			Side:      row[2],
+			Size:      row[3],
+			Price:     row[4],
+		}
+		btrs = append(btrs, btr)
+	}
+
+	return btrs, nil
 }
