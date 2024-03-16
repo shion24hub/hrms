@@ -30,7 +30,7 @@ func MakeUrl(symbol string, date time.Time) (string, error) {
 	return ep, nil
 }
 
-func DownloadTradingData(url string) (*csv.Reader, error) {
+func FetchTradingData(url string) (*csv.Reader, error) {
 
 	client := http.Client{
 		Timeout: 30 * time.Second,
